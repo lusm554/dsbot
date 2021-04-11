@@ -83,7 +83,7 @@ client.on('message', (msg) => {
 client.on('messageReactionAdd', async (reaction, user) => {
   await reaction.fetch()
   // Check that this is a bot message and is a reaction from user
-  if (reaction.message.author.id !== client.user.id || reaction.me) return;
+  if (user.id == client.user.id || reaction.me) return;
   // check that this is a certain reaction
   if (reaction.emoji.name !== '👍' && reaction.emoji.name !== '👎') return;
   update_cs_stack(reaction)
@@ -119,7 +119,8 @@ function update_cs_stack(reaction) {
   
     reaction.message.edit(msg)
       .catch(e => console.log('[ERROR] Error while edit message', e))
-      .then(msg => {
+      .then(async msg => {
+        await msg.reactions.cache.get('👍').remove()
         msg.reactions.removeAll()
           .catch(error => console.error('[ERROR] Failed to clear reactions: ', error))
           .then(msg => {
