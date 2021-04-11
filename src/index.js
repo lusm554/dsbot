@@ -1,5 +1,6 @@
+const path = require('path')
 // Set env vars
-require('dotenv').config()
+require('dotenv').config({ path: path.join(__dirname, '..', 'config', '.env') })
 const { Client, MessageEmbed, ClientUser, User } = require('discord.js')
 const client = new Client()
 const { set_presence } = require('./bot_appearance')
