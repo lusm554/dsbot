@@ -118,6 +118,14 @@ function update_cs_stack(reaction) {
   
     reaction.message.edit(msg)
       .catch(e => console.log('[ERROR] Error while edit message', e))
+      .then(msg => {
+        msg.reactions.removeAll()
+          .catch(error => console.error('[ERROR] Failed to clear reactions: ', error))
+          .then(msg => {
+            msg.react('👍')
+            msg.react('👎')
+          })
+      })
   } catch (error) {
     console.log('[ERROR]', error)
     reaction.message.reply('Error while run this command.')
