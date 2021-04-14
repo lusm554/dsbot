@@ -15,7 +15,7 @@ function set_status(client, status) {
  * Change bot name (global name)
  * @param {String} name 
  */
-function change_bot_name(name) {
+function change_bot_name(client, name) {
   client.user.setUsername(name)
     .then(user => console.log(`[BOT] New username is ${user.username}.`))
     .catch(console.error);
