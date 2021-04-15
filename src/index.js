@@ -15,23 +15,25 @@ const client = new CommandoClient({
 client.registry
   .registerDefaultTypes()
   .registerGroups([
-    ['test', 'Test command group'],
-    ['admin', 'Command group for admin\'s']
+    ['server appearance', 'Commands for managing the appearance of the server'],
+    ['admin', 'Command group for admin\'s'],
+    ['games', 'Command group game stacks']
   ])
   .registerDefaultGroups()
   .registerDefaultCommands({
-    help: true 
+    // prop help true be default btw
+    help: true,
+    unknownCommand: false
   })
   .registerCommandsIn(path.join(__dirname, 'commands'))
 
 client.on('ready', async () => {
   set_presence(client, 'don\'t click...', 'idle')
-  let bot_name = +client.user.username.slice(15, 17)
-  if (bot_name !== client.guilds.cache.size && (bot_name = `Verify ${client.guilds.cache.size}/75`)) {
-    //change_bot_name(client, bot_name)
-    console.log('u need uncomment string..')
-  }
   console.log('[BOT] Ready')
+})
+
+client.on('guildCreate', () => {
+  change_bot_name(client, `Verify ${client.guilds.cache.size}/75`)
 })
 
 client.on('error', e => console.log('[ERROR]', e))
