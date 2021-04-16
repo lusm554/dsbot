@@ -1,10 +1,13 @@
 const path = require('path')
-// Set env vars
-require('dotenv').config({ path: path.join(__dirname, '..', 'config', '.env') })
 const { MessageEmbed, ClientUser, User } = require('discord.js')
 const { CommandoClient } = require('discord.js-commando')
 const { set_presence, change_bot_name } = require('./appearance')
 const PREFIX = '$'
+
+if (!process.env.TOKEN) {
+  // Set env vars
+  require('dotenv').config({ path: path.join(__dirname, '..', 'config', '.env') })
+}
 
 const client = new CommandoClient({
   commandPrefix: '/',
@@ -17,7 +20,8 @@ client.registry
   .registerGroups([
     ['server appearance', 'Commands for managing the appearance of the server'],
     ['admin', 'Command group for admin\'s'],
-    ['games', 'Command group game stacks']
+    ['games', 'Command group game stacks'],
+    ['util', 'Command group for utils']
   ])
   .registerDefaultGroups()
   .registerDefaultCommands({
