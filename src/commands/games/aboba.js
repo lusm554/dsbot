@@ -33,10 +33,11 @@ async function connect_to_say(msg) {
 
   const conn = await channel.join()
   const stream = ytdl(urls[1], { filter: 'audioonly' })
+
+  const disconnect = () => conn.disconnect()
   conn.play(stream, { seek: 0, volume: 1 })
-    .on('finish', () => {
-      conn.disconnect()
-    })
+    .on('finish', disconnect)
+    .on('error', disconnect)
 }
 
 function send_text_aboba(msg) {
