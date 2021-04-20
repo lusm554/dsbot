@@ -35,7 +35,7 @@ async function connect_to_say(msg) {
   const stream = ytdl(urls[1], { filter: 'audioonly' })
 
   const disconnect = () => conn.disconnect()
-  conn.play(stream, { seek: 0, volume: 1 })
+  conn.play(stream, { seek: 0, volume: 0.7 })
     .on('finish', disconnect)
     .on('error', disconnect)
 }
