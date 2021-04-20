@@ -27,7 +27,10 @@ client.registry
   .registerDefaultCommands({
     // prop `help` true be default btw
     help: true,
-    unknownCommand: false
+    unknownCommand: false,
+    commandState: false,
+    prefix: false,
+    eval: false
   })
   .registerCommandsIn(path.join(__dirname, 'commands'))
 

@@ -13,19 +13,15 @@ class VKNews extends Command {
       group: 'news',
       memberName: 'games',
       description: 'Commad for create csgo stack.',
+      guildOnly: true
     })
   } 
 
-  async run(msg) { 
-    await send_post(msg, await post_by_id("-92876084_355038"))
-    await send_post(msg, await post_by_id("-92876084_355029"))
-    await send_post(msg, await post_by_id("-92876084_354903"))
+  async run(msg) {
     let post = await last_post()
-
     if (!post) {
       return msg.reply('vk post not found :(')
-    } 
-    
+    }
     return send_post(msg, post) 
   }
 
