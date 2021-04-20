@@ -11,8 +11,8 @@ if (!process.env.TOKEN) {
 
 const client = new CommandoClient({
   commandPrefix: '/',
-  owner: '257541382627917825',
-  invite: 'https://discord.gg/XGBA7g8XZ5'
+  owner: process.env.owner,
+  invite: process.env.invite
 })
 
 client.registry
@@ -21,7 +21,8 @@ client.registry
     ['server appearance', 'Commands for managing the appearance of the server'],
     ['admin', 'Command group for admin\'s'],
     ['games', 'Command group game stacks'],
-    ['util', 'Command group for utils']
+    ['util', 'Command group for utils'],
+    ['news', 'Command group for news']
   ])
   .registerDefaultGroups()
   .registerDefaultCommands({
