@@ -19,14 +19,13 @@ client.registry
   .registerDefaultTypes()
   .registerGroups([
     ['server appearance', 'Commands for managing the appearance of the server'],
-    ['admin', 'Command group for admin\'s'],
     ['games', 'Command group game stacks'],
     ['util', 'Command group for utils'],
     ['news', 'Command group for news']
   ])
   .registerDefaultGroups()
   .registerDefaultCommands({
-    // prop help true be default btw
+    // prop `help` true be default btw
     help: true,
     unknownCommand: false
   })

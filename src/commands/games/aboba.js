@@ -12,6 +12,7 @@ class Aboba extends Command {
       group: 'games',
       memberName: 'meme',
       description: 'Command for aboba...',
+      hidden: true
     })
   } 
 

@@ -9,9 +9,9 @@ class CsgoStack extends Command {
       group: 'games',
       memberName: 'games',
       description: 'Commad for create csgo stack.',
+      guildOnly: true
     })
   } 
-
 
   run(msg) { 
     try {

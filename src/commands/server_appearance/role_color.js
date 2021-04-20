@@ -1,12 +1,4 @@
 const { Command } = require('discord.js-commando')
-const { Permissions, BitField  } = require('discord.js')
-
-function validator(v, msg, arg) {
-  console.log(v)
-  console.log(msg)
-  console.log(arg)
-  return true  
-}
 
 class Echo extends Command {
   constructor(client) {
@@ -16,15 +8,16 @@ class Echo extends Command {
       group: 'server appearance',
       memberName: 'server appearance',
       description: 'Change role color.',
+      clientPermissions: ['ADMINISTRATOR'],
+      userPermissions: ['ADMINISTRATOR'],
+      guildOnly: true,
+      hidden: true,
       args: [
         {
           key: 'roles',
           prompt: 'Roles for rainbow?',
           type: 'string',
           default: '',
-          clientPermissions: ['ADMINISTRATOR'],
-          userPermissions: ['ADMINISTRATOR'],
-          guildOnly: true
         }
       ]
     })
