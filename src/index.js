@@ -1,13 +1,13 @@
 const path = require('path')
-const { MessageEmbed, ClientUser, User } = require('discord.js')
 const { CommandoClient } = require('discord.js-commando')
 const { set_presence, change_bot_name } = require('./appearance')
-const PREFIX = '$'
 
 if (!process.env.TOKEN) {
   // Set env vars
   require('dotenv').config({ path: path.join(__dirname, '..', 'config', '.env') })
 }
+// Connect to database
+require('./db.js')
 
 const client = new CommandoClient({
   commandPrefix: '/',
