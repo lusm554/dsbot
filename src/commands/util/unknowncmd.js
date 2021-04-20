@@ -1,5 +1,9 @@
 const { Command } = require('discord.js-commando')
 
+/**
+ * Custom response on unknown command, currently off.
+ */
+
 class UnknownCommandCommand extends Command {
   constructor(client) {
     super(client, {
@@ -8,7 +12,7 @@ class UnknownCommandCommand extends Command {
       memberName: 'unknown-command',
       description: 'Displays help information for when an unknown command is used.',
       examples: ['unknown-command smth'],
-      unknown: true,
+      // unknown: true, // Uncomment to make the bot react to unknown commands
       hidden: true
     })
   }
