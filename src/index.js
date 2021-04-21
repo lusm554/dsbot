@@ -35,7 +35,7 @@ client.registry
   .registerCommandsIn(path.join(__dirname, 'commands'))
 
 client.on('ready', async () => {
-  set_presence(client, 'don\'t click...', 'idle')
+  set_presence(client, `@${client.user.username} /help`, 'idle')
   console.log('[BOT] Ready')
 })
 

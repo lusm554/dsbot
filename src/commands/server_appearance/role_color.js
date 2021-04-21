@@ -12,6 +12,7 @@ class Echo extends Command {
       userPermissions: ['ADMINISTRATOR'],
       guildOnly: true,
       hidden: true,
+      ownerOnly: true,
       args: [
         {
           key: 'roles',
