@@ -8,21 +8,26 @@ const ACCESS_TOKEN= process.env.access_token
 class VKNews extends Command {
   constructor(client) {
     super(client, {
-      name: 'umoreska',
+      name: 'vk',
       aliases: ['u'],
       group: 'news',
       memberName: 'games',
-      description: 'Commad for create csgo stack.',
-      guildOnly: true
+      description: 'Commad for last post in group \'jumoreski\'.',
+      guildOnly: true,
+      clientPermissions: ['ADMINISTRATOR'],
+      userPermissions: ['ADMINISTRATOR'],
+      // args: [
+      //   {
+      //     key: 'owner_id',
+      //     type: 'string',
+      //     error: 'Owner id '
+      //   }
+      // ]
     })
   } 
 
   async run(msg) {
-    let post = await last_post()
-    if (!post) {
-      return msg.reply('vk post not found :(')
-    }
-    return send_post(msg, post) 
+    return send_post(msg, await get_last_post())
   }
 
   onError(e) {
@@ -30,96 +35,75 @@ class VKNews extends Command {
   }
 }
 
-async function send_post(msg, post) {
-  if (post.isImage) {
-    return msg.channel.send(toImage(post.date, post.url))
+async function send_post(msg, posts) {
+  // return msg.channel.send(1)
+  for (let post of posts) {
+    // REWRITE WITH OPPORTUNITY SEND BIG MESSAGES !!!!!!!!!!!!!!!!
+    if (post.text.length > 1024) return msg.channel.send('msg too big :(');
+
+    toMsg(post).forEach(async p => await msg.channel.send(p))
   }
-  let count_chunks = Math.ceil(post.text.length/1024)
-  for (let i = 1; i <= count_chunks; i++) {
-    let to = 1024*i
-    let from = to-1024
-    await msg.channel.send(toMsg(post.text.slice(from, to), post.date, i==1 ? post.image : false))
-  } 
+  // let count_chunks = Math.ceil(post.text.length/1024)
+  // for (let i = 1; i <= count_chunks; i++) {
+  //   let to = 1024*i
+  //   let from = to-1024
+  //   await msg.channel.send(toMsg(post.text.slice(from, to), post.date, i==1 ? post.image : false))
+  // } 
 }
 
-async function last_post(count=1, owner_id=-92876084) {
-  const post = await fetch(`http://api.vk.com/method/wall.get?owner_id=${owner_id}&count=${count}&access_token=${ACCESS_TOKEN}&v=5.130`)
-  .then(res => res.json())
-  .then(({ response }) => Array.isArray(response) ? response[0] : response)
-  .then(post => {
-    let info = { text: post.text, date: post.date, image: [] }
-    if (post.attachments) {
-      for (let image of post.attachments.filter(a => a.type === 'photo')) {
-        info.image.push(image.photo.sizes.pop().url)
-      }
+async function get_last_post(owner_id=-92876084) {
+  const raw_posts = await fetch(`http://api.vk.com/method/wall.get?owner_id=${owner_id}&count=13&access_token=${ACCESS_TOKEN}&v=5.130`)
+    .then(res => res.json())
+    .then(json => json.response.items)
+  const posts = raw_posts
+    .map(post => ({ date: post.date, text: post.text, attachments: post.attachments }))
+
+  return posts.map(post => {
+    if (post.attachments === undefined) {
+      post.isPostHaveAttachments = false
+      return post
     }
-    return info
+    post.text = post.text || 'No caption'
+    post.attachments = post.attachments.filter(file => {
+      if (file.type !== 'photo') {
+        post.isPostAttachmentsHaveNotSupportedType = true
+        return false
+      } else {
+        post.isPostHaveAttachments = true
+        return true
+      }
+    })
+    return post
   })
-   
-  // if post is empty it's mean that post is photo
-  if (post.text === '' || !post.text) {
-    return await fetch(`https://api.vk.com/method/photos.get?album_id=wall&rev=1&owner_id=${owner_id}&count=${count}&access_token=${ACCESS_TOKEN}&v=5.130`)
-    .then(res => res.json())
-    .then(({ response }) => response.items)
-    .then(images => {
-      let info = { isImage: true, date: images[0].date, url: [] }
-      for (let image of images) {
-        info.url.push(image.sizes.pop().url)
-      }
-      return info
-    })
-  }
-  return post
 }
 
-async function post_by_id(id='-92876084_354903', owner_id=-92876084) {
-  const post = await fetch(`http://api.vk.com/method/wall.getById?owner_id=${owner_id}&access_token=${ACCESS_TOKEN}&v=5.130&posts=${id}`)
-    .then(res => res.json())
-    .then(({ response }) => Array.isArray(response) ? response[0] : response)
-    .then(post => {
-      let info = { text: post.text, date: post.date, image: [] }
-      if (post.attachments) {
-        for (let image of post.attachments.filter(a => a.type === 'photo')) {
-          info.image.push(image.photo.sizes.pop().url)
-        }
-      }
-      return info
-    })
+function toMsg(post) {
+  const main_msg = new MessageEmbed()
+    .setTitle('Мои любимые юморески') // CHANGE ON GROUP NAME FROM DATABASE !!!!!
+    .addField(new Date(post.date).toLocaleTimeString("en-US"), post.text)
+    .setURL('https://google.com') // CHANGE ON POST URL !!!!
+  let msgs = [main_msg]
 
-  // if post is empty it's mean that post if photo
-  if (post.text === '' || !post.text) {
-    return await fetch(`https://api.vk.com/method/photos.get?album_id=wall&rev=1&owner_id=${owner_id}&count=${count}&access_token=${ACCESS_TOKEN}&v=5.130`)
-      .then(res => res.json())
-      .then(({ response }) => response.items)
-      .then(images => {
-        let info = { isImage: true, date: images[0].date, url: [] }
-        for (let image of images) {
-          info.url.push(image.sizes.pop().url)
-        }
-        return info
+  if (post.isPostHaveAttachments) { // To send several photos in MessageEmbed use -> https://discordjs.guide/popular-topics/webhooks.html#what-is-a-webhook
+    if (post.attachments.length > 1) {
+      post.attachments.forEach((photo, i) => {
+        if (i==0) return msgs[0].setImage(photo.photo.sizes.pop().url);
+        msgs.push(
+          new MessageEmbed()
+            .setTitle('Мои любимые юморески' + ` other images ${i+1}/${post.attachments.length}`) // CHANGE ON GROUP NAME FROM DATABASE !!!!!
+            .addField(new Date(post.date).toLocaleTimeString("en-US"), 'No caption')
+            .setURL('https://google.com') // CHANGE ON POST URL !!!!
+            .setImage(photo.photo.sizes.pop().url)
+        )
       })
-  }
-  return post
-}
-
-function toMsg(text, time, image=false) {
-  let msg = new MessageEmbed()
-    .addField(new Date(time).toLocaleTimeString("en-US"), text)
-  if (image) {
-    for (let i of image) {
-      msg.setImage(i)
+    } else {
+      msgs[0].setImage(post.attachments[0].photo.sizes.pop().url)
     }
   }
-  return msg
-}
-
-function toImage(time, image) {
-  let msg = new MessageEmbed()
-    .addField(new Date(time).toLocaleTimeString("en-US"), 'No caption')
-  for (let i of image) {
-    msg.setImage(i)
+  if (post.isPostAttachmentsHaveNotSupportedType) {
+    msgs = msgs.map(msg => msg.setFooter('*The post is not complete, see the original'))
   }
-  return msg
+  return msgs
 }
 
 module.exports = VKNews
