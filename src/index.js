@@ -1,19 +1,20 @@
 const path = require('path')
 const { CommandoClient } = require('discord.js-commando')
 const { set_presence, change_bot_name } = require('./appearance')
+const connect = require('./connect.js')
 
 if (!process.env.TOKEN) {
   // Set env vars
   require('dotenv').config({ path: path.join(__dirname, '..', 'config', '.env') })
 }
-// Connect to database
-require('./db.js')
 
 const client = new CommandoClient({
   commandPrefix: '/',
   owner: process.env.owner,
   invite: process.env.invite
 })
+// Connect discord and mongodb
+connect(client)
 
 client.registry
   .registerDefaultTypes()
@@ -44,4 +45,3 @@ client.on('guildCreate', () => {
 })
 
 client.on('error', e => console.log('[ERROR]', e))
-client.login(process.env.TOKEN)
