@@ -1,5 +1,5 @@
 const { MongoClient } = require('mongodb')
-const startNewsEvents = require('./events/news.event')
+const { start: startNewsEvents } = require('./events/news.event')
 const NewsDAO = require('./dao/news.dao.js')
 
 function connect(discordClient) {
