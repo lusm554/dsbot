@@ -25,7 +25,7 @@ class TextToEmoji extends Command {
     const isChar = (char) => /^[a-zA-Z]+$/.test(char)
 
     msg.channel.send(
-      text.split('').map(char => isChar(char) ? toCharEmoji(char) : char).join(' ')
+      text.split('').map(char => isChar(char) ? ` ${toCharEmoji(char)}` : char).join('')
     )
   }
 }
