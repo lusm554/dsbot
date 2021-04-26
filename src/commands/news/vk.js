@@ -1,6 +1,8 @@
 const fetch = require('node-fetch')
 const { Command } = require('discord.js-commando')
 const { MessageEmbed } = require('discord.js')
+const { newsEmitter } = require('../../events/news.event')
+const NewsDAO = require('../../dao/news.dao')
 const ACCESS_TOKEN= process.env.access_token
 
 /**
@@ -16,12 +18,20 @@ class VKNews extends Command {
   constructor(client) {
     super(client, {
       name: 'vk',
-      aliases: ['vk_news'],
+      aliases: ['vk_stop'],
       group: 'news',
       memberName: 'games',
-      description: 'Commad for last post in group \'jumoreski\'.',
+      description: 'Receive the latest news from a specific group',
       guildOnly: true,
+      clientPermissions: ['ADMINISTRATOR', 'MANAGE_CHANNELS'],
+      userPermissions: ['ADMINISTRATOR', 'MANAGE_CHANNELS'],
       args: [
+        {
+          key: 'action',
+          type: 'string',
+          oneOf: ['start', 'stop'],
+          prompt: 'Group action?'
+        },
         {
           key: 'group_id',
           type: 'string',
@@ -32,17 +42,79 @@ class VKNews extends Command {
     })  
   } 
 
-  async run(msg, { group_id }) {
-    if (group_id === '') return msg.reply('Group doesn\'t exist. Try again.');
-    const info = await getInfoAboutGroup(group_id)
-    if (info.error) return msg.reply('Group doesn\'t exist. Try again.');
+  async run(msg, { action, group_id }) {
+    try {
+      return msg.channel.send('Command not available at the moment.')
 
-    return send_post(msg, await get_last_post('-'+info.id, 1), info)
+      if (group_id === '') return msg.reply('Group doesn\'t exist. Try again.');
+      const info = await getInfoAboutGroup(group_id)
+      if (info.error) return msg.reply('Group doesn\'t exist. Try again.');
+
+      if (action === 'stop') {
+        const isOk = await NewsDAO.deleteGroup({ group_id: info.screen_name, channel_id: msg.channel.id })
+        if (isOk.error) return msg.channel.send('Error :(');
+        return msg.channel.send(`News from ${group_id} stopped.`)
+      }
+  
+      const isCountOfGroupsAllowed = await group_limit(msg.guild.id)
+      if (!isCountOfGroupsAllowed) return msg.channel.send('Too many groups.')
+
+      const addGroupStatus = await NewsDAO.addGroup({
+        group_id,
+        guild_id: msg.guild.id,
+        channel_id: msg.channel.id
+      })
+      const updateLastPostStatus = await NewsDAO.updateLastPost(group_id, { group_id, id: null })
+      
+      if (addGroupStatus.error || updateLastPostStatus.error) {
+        if (String(addGroupStatus.error).startsWith('MongoError: E11000 duplicate key error')) {
+          return msg.channel.send(`News from ${`${group_id}`} already set.`)
+        }
+        return msg.channel.send('Sorry, at the moment i can\'t set group. Try later ')
+      }
+  
+      return msg.channel.send(groupDescription(info))
+      // return send_post(msg, await get_last_post('-'+info.id, 1), info)
+    } catch (error) {
+      console.log(error)
+      return msg.channel.send('Error while execute this command :(')
+    }
   }
 
   onError(e) {
     console.log(e)
   }
+}
+
+newsEmitter.on('post', async ({ group_id }, channel) => {
+  const info = await getInfoAboutGroup(group_id)
+  const post = await get_last_post('-'+info.id, 1)
+
+  const last_post_id = await NewsDAO.getLastPost(group_id)
+  if (post[0].post_id === last_post_id.group.id) return;
+
+  const updateLastPostStatus = await NewsDAO.updateLastPost(group_id, { group_id, id: post[0].post_id })
+  if (updateLastPostStatus.error || last_post_id && last_post_id.error) {
+    newsEmitter.emit('error', updateLastPostStatus.error || last_post_id && last_post_id.error)
+    return channel.send('Error :(')
+  }
+
+  send_post(channel, post, info)
+})
+
+async function group_limit(guild_id) {
+  const subs = await NewsDAO.getBy({ guild_id }, 'count')
+  return subs < 2
+}
+
+function groupDescription(info) {
+  return new MessageEmbed()
+    .addField('INFO ↓', 'Each new group post will be forwarded to this channel.')
+    .setTitle(info.name)
+    .setDescription(info.description || 'not description')
+    .setImage(info.photo_200)
+    .setURL(`https://vk.com/${info.screen_name}`)
+    .setTimestamp()
 }
 
 function getInfoAboutGroup(group_id) {
@@ -51,12 +123,14 @@ function getInfoAboutGroup(group_id) {
     .then(json => json.error ? json : json.response[0])
 }
 
-async function send_post(msg, posts, info) {
+const toPostURL = (post, info) => `https://vk.com/${info.screen_name}?w=wall${post.owner_id+'_'+post.post_id}`
+
+async function send_post(channel, posts, info) {
   for (let post of posts) {
     // REWRITE WITH OPPORTUNITY SEND BIG MESSAGES !!!!!!!!!!!!!!!!
-    if (post.text.length > 1024) return msg.channel.send('msg too big :(');
+    if (post.text.length > 1024) return channel.send(`Temporarily unable to send large messages ʕ•́ᴥ•̀ʔっ. \nSee original ${toPostURL(post, info)}`);
 
-    toMsg(post, info).forEach(async p => await msg.channel.send(p))
+    toMsg(post, info).forEach(async p => await channel.send(p))
   }
   // let count_chunks = Math.ceil(post.text.length/1024)
   // for (let i = 1; i <= count_chunks; i++) {
@@ -97,7 +171,7 @@ async function get_last_post(owner_id, count=1) {
 }
 
 function toMsg(post, info) {
-  const post_url = `https://vk.com/${info.screen_name}?w=wall${post.owner_id+'_'+post.post_id}`
+  const post_url = toPostURL(post, info)
   const main_msg = new MessageEmbed()
     .setTitle(info.name)
     .addField(new Date(post.date).toLocaleTimeString("en-US"), post.text)
