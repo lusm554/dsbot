@@ -45,7 +45,7 @@ client.on('guildCreate', () => {
 })
 
 client.on('commandRun', (cmd, promise, msg, args) => {
-  console.log(`[COMMAND] ${msg.content} | ${msg.author.tag}[${msg.author.id}]`)
+  console.log(`[COMMAND] ${msg.content} | ${msg.author.tag}[${msg.author.id}] | Guild: ${msg.guild.name} Channel: ${msg.channel.name}`)
 })
 
 client.on('error', e => console.log('[ERROR]', e))
