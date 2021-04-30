@@ -44,8 +44,6 @@ class VKNews extends Command {
 
   async run(msg, { action, group_id }) {
     try {
-      return msg.channel.send('Command not available at the moment.')
-
       if (group_id === '') return msg.reply('Group doesn\'t exist. Try again.');
       const info = await getInfoAboutGroup(group_id)
       if (info.error) return msg.reply('Group doesn\'t exist. Try again.');
@@ -98,6 +96,9 @@ newsEmitter.on('post', async ({ group_id }, channel) => {
     newsEmitter.emit('error', updateLastPostStatus.error || last_post_id && last_post_id.error)
     return channel.send('Error :(')
   }
+
+  // If post from another group
+  if (post.every(p => p.text === '' && !p.isPostHaveAttachments)) return;
 
   send_post(channel, post, info)
 })
