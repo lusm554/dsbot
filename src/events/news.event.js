@@ -2,13 +2,13 @@ const EventEmitter = require('events')
 const NewsDAO = require('../dao/news.dao')
 const newsEmitter = new EventEmitter()
 
-const delay = 15
+const delay = 2 // minutes
 let discordClient;
 let interval_id;
  
 function start(dc) {
   discordClient = dc
-  // interval_id = setInterval(lookNews, delay * 60 * 1000) //delay * 60 * 1000
+  interval_id = setInterval(lookNews, delay * 60 * 1000) //delay * 60 * 1000
 }
 
 async function lookNews() {
