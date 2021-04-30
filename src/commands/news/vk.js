@@ -29,7 +29,7 @@ class VKNews extends Command {
         {
           key: 'action',
           type: 'string',
-          oneOf: ['start', 'stop'],
+          oneOf: ['start', 'stop', 'list'],
           prompt: 'Group action?'
         },
         {
@@ -44,7 +44,18 @@ class VKNews extends Command {
 
   async run(msg, { action, group_id }) {
     try {
-      if (group_id === '') return msg.reply('Group doesn\'t exist. Try again.');
+      if (group_id === '' && action != 'list') return msg.reply('Group doesn\'t exist. Try again.');
+
+      if (action === 'list') {
+        let groupList = await NewsDAO.getGroupsList({ guild_id: msg.guild.id, channel_id: msg.channel.id })
+        if (groupList.length == 0) return msg.channel.send('Groups not found :four: :zero: :four:')
+        return msg.channel.send(
+          new MessageEmbed()
+            .setTitle(`Groups list ${groupList.length}/2`)
+            .setDescription(`${groupList.map(({ group_id }) => `https://vk.com/${group_id}`).join('\n')}`)
+          )
+      }
+
       const info = await getInfoAboutGroup(group_id)
       if (info.error) return msg.reply('Group doesn\'t exist. Try again.');
 
@@ -55,7 +66,7 @@ class VKNews extends Command {
       }
   
       const isCountOfGroupsAllowed = await group_limit(msg.guild.id)
-      if (!isCountOfGroupsAllowed) return msg.channel.send('Too many groups.')
+      if (!isCountOfGroupsAllowed) return msg.channel.send('Too many groups (▰˘︹˘▰)\nMore features coming soon.')
 
       const addGroupStatus = await NewsDAO.addGroup({
         group_id,
@@ -122,6 +133,7 @@ function getInfoAboutGroup(group_id) {
   return fetch(`http://api.vk.com/method/groups.getById?group_id=${group_id}&fields=site,description,activity&access_token=${ACCESS_TOKEN}&v=5.130`)
     .then(res => res.json())
     .then(json => json.error ? json : json.response[0])
+    .catch(e => console.error('[ERROR]', e))
 }
 
 const toPostURL = (post, info) => `https://vk.com/${info.screen_name}?w=wall${post.owner_id+'_'+post.post_id}`
@@ -149,6 +161,7 @@ async function get_last_post(owner_id, count=1) {
       if (json.response.items.length === unpinned.length) return unpinned.slice(0, unpinned.length-1);
       return unpinned
     })
+    .catch(e => console.error('[ERROR]', e))
   const posts = raw_posts
     .map(post => ({ date: post.date, text: post.text, attachments: post.attachments, post_id: post.id, owner_id }))
 
