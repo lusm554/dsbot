@@ -9,6 +9,7 @@ class NewsDAO {
       last_post = await conn.db(process.env.DB_NAME).collection('last_post')
 
       await news.createIndex({ group_id: 1, channel_id: 1 }, { unique: true })
+      await last_post.createIndex({ group_id: 1 }, { unique: true })
     } catch (error) {
       console.log('[DATABASE ERROR]')
       console.error(error)
@@ -67,6 +68,7 @@ class NewsDAO {
 
   static async deleteGroup(query) {
     try {
+      await last_post.deleteOne({ group_id: query.group_id })
       return await news.deleteOne(query)
     } catch (error) {
       return { error }
