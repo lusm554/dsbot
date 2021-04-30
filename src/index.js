@@ -44,4 +44,8 @@ client.on('guildCreate', () => {
   change_bot_name(client, `Verify ${client.guilds.cache.size}/75`)
 })
 
+client.on('commandRun', (cmd, promise, msg, args) => {
+  console.log(`[COMMAND] ${msg.content} | ${msg.author.tag}[${msg.author.id}]`)
+})
+
 client.on('error', e => console.log('[ERROR]', e))
