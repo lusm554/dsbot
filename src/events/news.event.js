@@ -12,12 +12,10 @@ function start(dc) {
 }
 
 async function lookNews() {
-  let cursor = await NewsDAO.getGroupsList()
-  let list = []
-  await cursor.forEach(a => list.push(a))
-  if (list.length === 0) return;
+  let groupList = await NewsDAO.getGroupsList()
+  if (groupList.length === 0) return;
 
-  for (let group of list) {
+  for (let group of groupList) {
     newsEmitter.emit('post', { group_id: group.group_id }, discordClient.channels.cache.get(group.channel_id))
   }
 }

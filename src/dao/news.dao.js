@@ -50,9 +50,12 @@ class NewsDAO {
     }
   }
 
-  static async getGroupsList() {
+  static async getGroupsList(filter) {
     try {
-      return await news.find({})//.limit(5)
+      let cursor = await news.find(filter || {})//.limit(5)
+      let groupList = []
+      await cursor.forEach(a => groupList.push(a))
+      return groupList
     } catch (error) {
       return { error }
     }
