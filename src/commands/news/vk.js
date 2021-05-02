@@ -98,6 +98,7 @@ class VKNews extends Command {
 newsEmitter.on('post', async ({ group_id }, channel) => {
   const info = await getInfoAboutGroup(group_id)
   const post = await get_last_post('-'+info.id, 1)
+  console.log(post)
 
   const last_post_id = await NewsDAO.getLastPost(group_id)
   if (post[0].post_id === last_post_id.group.id) return;
@@ -163,7 +164,7 @@ async function get_last_post(owner_id, count=1) {
     })
     .catch(e => console.error('[ERROR]', e))
   const posts = raw_posts
-    .map(post => ({ date: post.date, text: post.text, attachments: post.attachments, post_id: post.id, owner_id }))
+    .map(post => ({ date: post.date, text: post.text, attachments: post.attachments, post_id: post.id, owner_id, marked_as_ads: post.marked_as_ads }))
 
   return posts.map(post => {
     if (post.attachments === undefined) {
