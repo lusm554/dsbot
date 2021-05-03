@@ -47,12 +47,12 @@ class VKNews extends Command {
       if (group_id === '' && action != 'list') return msg.reply('Group doesn\'t exist. Try again.');
 
       if (action === 'list') {
-        let groupList = await NewsDAO.getGroupsList({ guild_id: msg.guild.id, channel_id: msg.channel.id })
+        let groupList = await NewsDAO.getGroupsList({ guild_id: msg.guild.id })
         if (groupList.length == 0) return msg.channel.send('Groups not found :four: :zero: :four:')
         return msg.channel.send(
           new MessageEmbed()
             .setTitle(`Groups list ${groupList.length}/2`)
-            .setDescription(`${groupList.map(({ group_id }) => `https://vk.com/${group_id}`).join('\n')}`)
+            .setDescription(`${groupList.map(({ group_id, channel_id }) => `${msg.client.channels.cache.get(channel_id).name} – https://vk.com/${group_id}`).join('\n')}`)
           )
       }
 
@@ -98,7 +98,6 @@ class VKNews extends Command {
 newsEmitter.on('post', async ({ group_id }, channel) => {
   const info = await getInfoAboutGroup(group_id)
   const post = await get_last_post('-'+info.id, 1)
-  console.log(post)
 
   const last_post_id = await NewsDAO.getLastPost(group_id)
   if (post[0].post_id === last_post_id.group.id) return;
