@@ -45,6 +45,9 @@ client.on('guildCreate', () => {
 })
 
 client.on('commandRun', (cmd, promise, msg, args) => {
+  if (msg.channel.type == 'dm') {
+    return console.log(`[COMMAND] ${msg.content} | ${msg.author.tag}[${msg.author.id}] Channel: DM`)
+  }
   console.log(`[COMMAND] ${msg.content} | ${msg.author.tag}[${msg.author.id}] | Guild: ${msg.guild.name} Channel: ${msg.channel.name}`)
 })
 
