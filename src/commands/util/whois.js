@@ -7,7 +7,8 @@ class WhoIs extends Command {
       name: 'whois',
       group: 'util',
       memberName: 'whois',
-      description: 'Get info about user.'
+      description: 'Get info about user.',
+      guildOnly: true
     })
   } 
 
