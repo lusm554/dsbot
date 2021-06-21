@@ -20,7 +20,7 @@ pm ERR! enoent undefined ls-remote -h -t ssh://git@github.com/discordjs/Commando
 ```
 <h4>Todo:</h4>
 
-- Class for game stack
-- The ability to lift the board from game stack
-- New view of bot commands info
-- Add internal coin (in future) 
+- Class for game stack ❌
+- The ability to lift the board from game stack ❌
+- New view of bot commands info ❌
+- Add internal coin (in future) ❌
